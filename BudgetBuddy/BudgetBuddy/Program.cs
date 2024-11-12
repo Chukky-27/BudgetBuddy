@@ -1,3 +1,6 @@
+using BudgetBuddy.Models;
+using Microsoft.EntityFrameworkCore;
+
 namespace BudgetBuddy
 {
     public class Program
@@ -8,6 +11,9 @@ namespace BudgetBuddy
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddDbContext<SpendSmartDbContext>(options => 
+                options.UseInMemoryDatabase("SpendSmartDb")
+            );
 
             var app = builder.Build();
 

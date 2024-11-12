@@ -8,9 +8,12 @@ namespace BudgetBuddy.Controllers
     {
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        private readonly SpendSmartDbContext _spendSmart;
+
+        public HomeController(ILogger<HomeController> logger, SpendSmartDbContext spendSmart)
         {
             _logger = logger;
+            _spendSmart = spendSmart;
         }
 
         public IActionResult Index()
@@ -20,15 +23,51 @@ namespace BudgetBuddy.Controllers
 
         public IActionResult Expenses()
         {
+            var allExpenses =_spendSmart.Expenses.ToList();
+           
+            var totalExpenses = allExpenses
+                .Sum(e => e.Value);
+            ViewBag.Expenses = totalExpenses;
+
+            return View(allExpenses);
+        }
+        public IActionResult CreateEditExpense(int? id)
+        {
+            if (id == null)
+            {
+                var expenseInDb = _spendSmart
+                .Expenses
+                .SingleOrDefault(expense =>
+                expense.Id == id);
+                return View(expenseInDb);
+            }            
             return View();
         }
-        public IActionResult CreateEditExpense()
+        public IActionResult DeleteExpense(int id)
         {
-            return View();
+            var expenseInDb = _spendSmart
+                .Expenses
+                .SingleOrDefault(expense =>
+                expense.Id == id);
+            _spendSmart.Expenses.Remove(expenseInDb);
+            _spendSmart.SaveChanges();
+            return RedirectToAction("Expenses");
         }
         public IActionResult CreateEditExpenseForm(Expense model)
         {
-            return RedirectToAction("Index");
+            if (model.Id == 0)
+            {
+                //Create
+                _spendSmart.Expenses.Add(model);
+            }
+            else
+            {
+                //Editing
+                _spendSmart.Expenses.Update(model);
+            }
+            
+            _spendSmart.SaveChanges();
+            return RedirectToAction("Expenses");
         }
         public IActionResult Privacy()
         {
